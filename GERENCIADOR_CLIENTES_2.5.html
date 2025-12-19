@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<!--
+================================================================================
+GUIA RÁPIDO DE USO - NOVAS FUNCIONALIDADES
+================================================================================
+
+1. EXPORTAR DADOS (JSON)
+   - Use o botão "💾 Exportar" (localizado no final da área principal) para salvar
+     todos os dados (Empresas, Tarefas, Observações e Níveis de Risco) em um
+     arquivo JSON no seu computador.
+   - O arquivo é um backup completo do seu gerenciador.
+
+2. IMPORTAR DADOS (JSON)
+   - Use o botão "📂 Importar" para carregar um arquivo JSON de backup.
+   - Isso irá substituir todos os dados atuais pelos dados contidos no arquivo JSON.
+
+3. RESETAR DADOS
+   - Use o botão "🗑️ Resetar" para apagar permanentemente todas as Empresas e Tarefas.
+   - Uma confirmação será solicitada antes da exclusão.
+
+4. OBSERVAÇÕES DA TAREFA
+   - O botão "Observações" foi removido.
+   - Para adicionar ou editar observações de uma tarefa, basta clicar diretamente
+     no campo de observações dentro do card da tarefa (onde diz "Clique para
+     adicionar observações...").
+
+5. OBSERVAÇÕES E RISCO DA EMPRESA
+   - Os quadros "Observações Gerais da Empresa" e "Risco de Cancelamento"
+     aparecem recolhidos por padrão.
+   - Clique no título de cada quadro para expandir e editar as informações.
+
+================================================================================
+-->
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Implantação | E-Implantação</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #2C5364, #203A43, #0F2027);
+            color: #f1f5f9;
+            min-height: 100vh;
+            transition: background 0.5s ease;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+        }
+
+        .glass-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        .glass-button {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.2);
+        }
+
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.4);
+        }
+
+        .glass-button.accent {
+            background: rgba(255, 159, 67, 0.8);
+            border-color: rgba(255, 165, 2, 0.5);
+            box-shadow: 0 4px 15px 0 rgba(255, 159, 67, 0.4);
+        }
+
+        .glass-button.accent:hover {
+            background: rgba(255, 159, 67, 1);
+            border-color: rgba(255, 165, 2, 1);
+            box-shadow: 0 4px 20px 0 rgba(255, 159, 67, 0.6);
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header-left h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-header-left p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .skin-toggle {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .skin-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .skin-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+            animation: spin 3s linear infinite;
+        }
+
+        .skin-toggle:hover svg {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .skin-menu {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            min-width: 200px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        .skin-menu.active {
+            display: flex;
+        }
+
+        .skin-option {
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            border: 1px solid transparent;
+        }
+
+        .skin-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .skin-option.active {
+            background: rgba(255, 159, 67, 0.3);
+            border-color: rgba(255, 165, 2, 0.5);
+        }
+
+        .skin-preview {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .search-box {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-box input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input::placeholder {
+            color: #9ca3af;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #ff9f43;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .company-item {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .company-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .company-item.active {
+            background: rgba(255, 159, 67, 0.3);
+            border: 1px solid rgba(255, 165, 2, 0.5);
+        }
+
+        .company-item .delete-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .company-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            margin: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .top-bar-left h2 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .top-bar-left p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .kanban-board {
+            flex: 1;
+            overflow-x: auto;
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .kanban-column {
+            flex-shrink: 0;
+            width: 384px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .column-header-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .column-header-top h3 {
+            font-size: 18px;
+            flex: 1;
+        }
+
+        .column-count {
+            background: rgba(255, 159, 67, 0.3);
+            color: #fed7aa;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 9999px;
+        }
+
+        .column-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .metric-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .metric-label {
+            color: #9ca3af;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .metric-value {
+            color: #ffa502;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Estilos para o Spinner de Progresso */
+        .progress-spinner {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .progress-spinner svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .progress-spinner circle {
+            stroke-width: 4;
+            fill: none;
+        }
+
+        .progress-spinner .bg {
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-spinner .fg {
+            stroke: #ff9f43;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .metric-box.spinner-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .metric-box.spinner-box .metric-label {
+            margin-bottom: 0;
+        }
+
+        .alert-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 12px;
+            grid-column: 1 / -1;
+        }
+
+        .alert-box.warning {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.5);
+            color: #fef08a;
+        }
+
+        .tasks-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tasks-container.drag-over {
+            background: rgba(255, 159, 67, 0.1);
+            border: 2px dashed rgba(255, 159, 67, 0.5);
+        }
+
+        .task-card {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: all 0.3s ease, max-height 0.3s ease-out;
+            user-select: none;
+            overflow: hidden;
+            max-height: 300px; /* Altura máxima para estado expandido */
+        }
+
+        .task-card.collapsed {
+            max-height: 90px; /* Aumentado para acomodar o cabeçalho com texto longo */
+            cursor: pointer;
+        }
+
+        .task-card.collapsed .task-header {
+            cursor: pointer;
+        }
+
+        .task-card.collapsed .progress-section,
+        .task-card.collapsed .dates-grid,
+        .task-card.collapsed .notes-section,
+        .task-card.collapsed .task-actions,
+        .task-card.collapsed .alert-message {
+            display: none;
+        }
+
+        .task-card:active {
+            cursor: grabbing;
+        }
+
+        .task-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+            cursor: grabbing;
+        }
+
+        .task-card.drag-over {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 159, 67, 0.6);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .task-description {
+            color: #d1d5db;
+            font-size: 12px;
+        }
+
+        .task-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #93c5fd;
+        }
+
+        .progress-section {
+            margin-bottom: 12px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #9ca3af;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9f43, #ffa502);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 159, 67, 0.8);
+        }
+
+        .alert-message {
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .alert-message.danger {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+        }
+
+        .alert-message.warning {
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            color: #fef08a;
+        }
+
+        .dates-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+
+        .date-item {
+            color: #9ca3af;
+        }
+
+        .date-item span {
+            display: block;
+            color: #f1f5f9;
+            margin-top: 2px;
+        }
+
+        .notes-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #9ca3af;
+        }
+
+        .notes-section.has-notes {
+            color: #f1f5f9;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            padding: 24px;
+            border-radius: 12px;
+            width: 384px;
+            max-height: 384px;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #d1d5db;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ff9f43;
+        }
+
+        .form-group textarea {
+            resize: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 128px;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .company-info-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px; /* Adiciona espaço abaixo dos quadros */
+        }
+
+        .info-box {
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .info-box h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .info-box-content {
+            display: none;
+        }
+
+        .info-box-content.expanded {
+            display: block;
+        }
+
+        .info-box textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .info-box textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .info-box textarea:focus {
+            outline: none;
+            border-color: #ff9f43;
+        }
+
+        .info-box select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 8px;
+        }
+
+        .info-box select:focus {
+            outline: none;
+            border-color: #ff9f43;
+        }
+
+        .info-box option {
+            background: #1e293b;
+            color: white;
+        }
+
+        .info-box label {
+            display: block;
+            color: #d1d5db;
+            font-size: 13px;
+            margin-bottom: 4px;
+            margin-top: 8px;
+        }
+
+        .info-box label:first-of-type {
+            margin-top: 0;
+        }
+
+        .export-import-section {
+            margin: 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .export-import-section button {
+            padding: 6px 12px;
+            font-size: 12px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .export-import-section button:hover {
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 16px;
+            color: #9ca3af;
+            font-size: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar glass-card" style="border-radius: 0; box-shadow: none;">
+            <div class="sidebar-header">
+                <div class="sidebar-header-left">
+                    <h1>E-Implantação</h1>
+                    <p>Gerenciador de Implantação</p>
+                </div>
+                <div class="skin-toggle" onclick="toggleSkinMenu()">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5zm0-5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm7.43-2.53c.04-.32.07-.64.07-.97 0-.36-.03-.68-.07-1.02l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65c-.04-.24-.25-.41-.5-.41h-4c-.25 0-.46.17-.49.41l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.34-.07.66-.07 1.02 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.39 1.06.73 1.69.98l.37 2.65c.03.24.24.41.49.41h4c.25 0 .46-.17.49-.41l.37-2.65c.63-.25 1.17-.59 1.69-.98l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+                    </svg>
+                    <div class="skin-menu" id="skinMenu">
+                        <div class="skin-option active" onclick="changeSkin(0)">
+                            <div class="skin-preview" style="background: linear-gradient(to right, #2C5364, #203A43, #0F2027);"></div>
+                            <span>Azul Escuro</span>
+                        </div>
+                        <div class="skin-option" onclick="changeSkin(1)">
+                            <div class="skin-preview" style="background: linear-gradient(to right, #093637, #44A08D);"></div>
+                            <span>Verde Teal</span>
+                        </div>
+                        <div class="skin-option" onclick="changeSkin(2)">
+                            <div class="skin-preview" style="background: linear-gradient(to right, #19547b, #ffd89b);"></div>
+                            <span>Azul Ouro</span>
+                        </div>
+                        <div class="skin-option" onclick="changeSkin(3)">
+                            <div class="skin-preview" style="background: linear-gradient(to right, #283E51, #4B79A1);"></div>
+                            <span>Azul Profundo</span>
+                        </div>
+                        <div class="skin-option" onclick="changeSkin(4)">
+                            <div class="skin-preview" style="background: linear-gradient(to right, #3d72b4, #525252);"></div>
+                            <span>Azul Cinza</span>
+                        </div>
+                        <div class="skin-option" onclick="changeSkin(5)">
+                            <div class="skin-preview" style="background: linear-gradient(to right, #373B44, #73C8A9);"></div>
+                            <span>Verde Menta</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchCompany" placeholder="🔍 Pesquisar empresa..." onkeyup="filterCompanies()">
+            </div>
+
+            <div class="sidebar-content" id="companiesList"></div>
+
+            <div class="sidebar-footer">
+                <button class="glass-button accent" style="width: 100%;" onclick="showAddCompanyModal()">
+                    + Nova Empresa
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar glass-card">
+                <div class="top-bar-left">
+                    <h2 id="companyName">Selecione uma empresa</h2>
+                    <p id="taskCount">0 tarefa(s) em andamento</p>
+                </div>
+                <button class="glass-button accent" id="newTaskBtn" onclick="showAddTaskModal()" style="display: none;">
+                    + Nova Tarefa
+                </button>
+            </div>
+
+            <div class="kanban-board" id="kanbanBoard"></div>
+            
+            <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: 16px; padding: 0 16px;">
+                <div class="company-info-section" id="companyInfoSection" style="display: none; flex-grow: 1; max-width: 60%;">
+                    <div class="glass-card info-box">
+                        <h3 onclick="toggleInfoBox('companyNotes')">
+                            <span>Observações Gerais da Empresa</span>
+                            <span class="toggle-icon" id="companyNotesIcon">▼</span>
+                        </h3>
+                        <div class="info-box-content" id="companyNotesContent">
+                            <textarea id="companyNotesTextarea" placeholder="Digite as observações gerais sobre a empresa..." onchange="saveCompanyNotes()"></textarea>
+                        </div>
+                    </div>
+                    <div class="glass-card info-box">
+                        <h3 onclick="toggleInfoBox('companyRisk')">
+                            <span>Risco de Cancelamento</span>
+                            <span class="toggle-icon" id="companyRiskIcon">▼</span>
+                        </h3>
+                        <div class="info-box-content" id="companyRiskContent">
+                            <label>Risco de Cancelamento:</label>
+                            <select id="companyRiskLevel" onchange="saveCompanyRisk()">
+                                <option value="">Selecione...</option>
+                                <option value="Baixo">Baixo</option>
+                                <option value="Médio">Médio</option>
+                                <option value="Alto">Alto</option>
+                            </select>
+                            <label>Nível do Cliente:</label>
+                            <select id="companyClientLevel" onchange="saveCompanyRisk()">
+                                <option value="">Selecione...</option>
+                                <option value="Small">Small</option>
+                                <option value="Middle">Middle</option>
+                                <option value="Top">Top</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="export-import-section">
+                <button class="glass-button" onclick="exportData()">
+                    💾 Exportar
+                </button>
+                <button class="glass-button" onclick="document.getElementById('importFileInput').click()">
+                    📂 Importar
+                </button>
+                <button class="glass-button" style="color: #ef4444; border-color: #ef4444;" onclick="resetData()">
+                    🗑️ Resetar
+                </button>
+                <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importData(event)">
+            </div>
+            </div>
+            
+            <footer>
+                Copyright - Ivan Alves Ramalho
+            </footer>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="addCompanyModal">
+        <div class="modal-content glass-card">
+            <h3>Nova Empresa</h3>
+            <div class="form-group">
+                <label>Nome da Empresa</label>
+                <input type="text" id="companyNameInput" placeholder="Nome da empresa...">
+            </div>
+            <div class="modal-actions">
+                <button class="glass-button accent" onclick="addCompany()">Adicionar</button>
+                <button class="glass-button" onclick="closeModal('addCompanyModal')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="addTaskModal">
+        <div class="modal-content glass-card">
+            <h3>Nova Tarefa</h3>
+            <div class="form-group">
+                <label>Título</label>
+                <input type="text" id="taskTitleInput" placeholder="Título da tarefa...">
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="taskDescInput" placeholder="Descrição da tarefa..." rows="3"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data Início</label>
+                    <input type="date" id="taskStartDate">
+                </div>
+                <div class="form-group">
+                    <label>Data Vencimento</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="glass-button accent" onclick="addTask()">Criar Tarefa</button>
+                <button class="glass-button" onclick="closeModal('addTaskModal')">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Skins
+        const skins = [
+            { name: 'Azul Escuro', gradient: 'linear-gradient(to right, #2C5364, #203A43, #0F2027)' },
+            { name: 'Verde Teal', gradient: 'linear-gradient(to right, #093637, #44A08D)' },
+            { name: 'Azul Ouro', gradient: 'linear-gradient(to right, #19547b, #ffd89b)' },
+            { name: 'Azul Profundo', gradient: 'linear-gradient(to right, #283E51, #4B79A1)' },
+            { name: 'Azul Cinza', gradient: 'linear-gradient(to right, #3d72b4, #525252)' },
+            { name: 'Verde Menta', gradient: 'linear-gradient(to right, #373B44, #73C8A9)' },
+        ];
+
+        let currentSkinIndex = 0;
+
+        function toggleSkinMenu() {
+            const menu = document.getElementById('skinMenu');
+            menu.classList.toggle('active');
+        }
+
+        function changeSkin(index) {
+            currentSkinIndex = index;
+            document.body.style.background = skins[index].gradient;
+            
+            // Update active state
+            document.querySelectorAll('.skin-option').forEach((option, i) => {
+                option.classList.toggle('active', i === index);
+            });
+            
+            // Close menu
+            document.getElementById('skinMenu').classList.remove('active');
+            
+            // Save preference
+            localStorage.setItem('kanbanSkin', index);
+        }
+
+        // Data
+        let companies = [
+            { id: '1', name: 'Empresa Alpha', notes: '', riskLevel: '', clientLevel: '' },
+            { id: '2', name: 'Empresa Beta', notes: '', riskLevel: '', clientLevel: '' },
+        ];
+
+        let tasks = [
+            {
+                id: '1',
+                title: 'Implementar Dashboard',
+                description: 'Criar dashboard de análise',
+                status: 'started',
+                startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+                dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+                notes: 'Aguardando aprovação do design',
+                companyId: '1',
+            },
+            {
+                id: '2',
+                title: 'Integração API',
+                description: 'Integrar com API externa',
+                status: 'launched',
+                startDate: new Date(),
+                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                notes: '',
+                companyId: '1',
+            },
+            {
+                id: '3',
+                title: 'Testes Unitários',
+                description: 'Escrever testes para módulo X',
+                status: 'overdue',
+                startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+                dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+                notes: 'Crítico - necessário conclusão urgente',
+                companyId: '1',
+            },
+            {
+                id: '4',
+                title: 'Documentação',
+                description: 'Documentar API',
+                status: 'completed',
+                startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+                dueDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+                notes: 'Concluído com sucesso',
+                companyId: '2',
+            },
+        ];
+
+        let selectedCompanyId = '1';
+        let draggedTaskId = null;
+
+        // Initialize
+        function init() {
+            const savedSkin = localStorage.getItem('kanbanSkin');
+            if (savedSkin) {
+                changeSkin(parseInt(savedSkin));
+            }
+            setDefaultDates();
+            renderCompanies();
+            renderKanban();
+        }
+
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            document.getElementById('taskStartDate').value = today;
+            document.getElementById('taskDueDate').value = future;
+        }
+
+        function renderCompanies() {
+            const list = document.getElementById('companiesList');
+            const searchTerm = document.getElementById('searchCompany')?.value.toLowerCase() || '';
+            const filteredCompanies = companies.filter(company => 
+                company.name.toLowerCase().includes(searchTerm)
+            );
+            
+            list.innerHTML = filteredCompanies.length === 0 
+                ? '<div style="padding: 16px; text-align: center; color: #9ca3af; font-size: 14px;">Nenhuma empresa encontrada</div>'
+                : filteredCompanies.map(company => `
+                <div class="glass-card company-item ${selectedCompanyId === company.id ? 'active' : ''}" onclick="selectCompany('${company.id}')">
+                    <span>${company.name}</span>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteCompany('${company.id}')">×</button>
+                </div>
+            `).join('');
+        }
+
+        function filterCompanies() {
+            renderCompanies();
+        }
+
+        function renderKanban() {
+            const board = document.getElementById('kanbanBoard');
+            const companyTasks = tasks.filter(t => t.companyId === selectedCompanyId);
+            document.getElementById('companyName').textContent = companies.find(c => c.id === selectedCompanyId)?.name || 'Selecione uma empresa';
+            document.getElementById('taskCount').textContent = `${companyTasks.length} tarefa(s) em andamento`;
+            document.getElementById('newTaskBtn').style.display = selectedCompanyId ? 'flex' : 'none';
+
+            const statuses = ['launched', 'started', 'overdue', 'completed'];
+            const statusLabels = { launched: 'Tarefas Lançadas', started: 'Tarefas Iniciadas', overdue: 'Tarefas Atrasadas', completed: 'Tarefas Concluídas' };
+            const statusIcons = { launched: '⏱️', started: '▶️', overdue: '⚠️', completed: '✓' };
+
+            board.innerHTML = statuses.map(status => {
+                const columnTasks = companyTasks.filter(t => t.status === status);
+                const metrics = getColumnMetrics(status, columnTasks);
+
+                return `
+                    <div class="kanban-column">
+                        <div class="glass-card column-header">
+                            <div class="column-header-top">
+                                <span style="font-size: 18px;">${statusIcons[status]}</span>
+                                <h3>${statusLabels[status]}</h3>
+                                <span class="column-count">${columnTasks.length}</span>
+                            </div>
+	                            <div class="column-metrics">
+	                                <div class="metric-box spinner-box">
+	                                    <div class="progress-spinner">
+	                                        <svg viewBox="0 0 36 36">
+	                                            <circle class="bg" cx="18" cy="18" r="16" stroke-dasharray="100" stroke-dashoffset="0"></circle>
+	                                            <circle class="fg" cx="18" cy="18" r="16" stroke-dasharray="100" stroke-dashoffset="${100 - metrics.avgProgress}"></circle>
+	                                        </svg>
+	                                        <span class="metric-value" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px;">${metrics.avgProgress}%</span>
+	                                    </div>
+	                                    <span class="metric-label">Progresso Médio</span>
+	                                </div>
+                                <div class="metric-box">
+                                    <span class="metric-label">Concluídas</span>
+                                    <span class="metric-value">${metrics.completedTasks}/${metrics.totalTasks}</span>
+                                </div>
+                                ${metrics.overdueTasks > 0 ? `<div class="alert-box">⚠️ ${metrics.overdueTasks} atrasada(s)</div>` : ''}
+                                ${metrics.nearDeadlineTasks > 0 ? `<div class="alert-box warning">⏰ ${metrics.nearDeadlineTasks} próxima(s) ao vencimento</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="tasks-container" data-status="${status}" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event)">
+                            ${columnTasks.length === 0 ? '<div class="empty-state">Nenhuma tarefa nesta coluna</div>' : columnTasks.map(task => renderTaskCard(task)).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTaskCard(task) {
+            const progress = getTaskProgress(task);
+            const alertHtml = progress.isOverdue 
+                ? `<div class="alert-message danger">Vencida há ${Math.abs(progress.daysRemaining)} dias</div>`
+                : progress.isNearDeadline
+                ? `<div class="alert-message warning">Vence em ${progress.daysRemaining} dias</div>`
+                : '';
+
+	            return `
+	                <div class="glass-card task-card collapsed" draggable="true" data-task-id="${task.id}" onclick="toggleTaskCollapse(event)" ondragstart="dragStart(event)" ondragend="dragEnd(event)" ondragover="taskDragOver(event)" ondragleave="taskDragLeave(event)">
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-description">${task.description}</div>
+                        </div>
+                        <span class="task-status">${task.status === 'launched' ? 'Lançada' : task.status === 'started' ? 'Iniciada' : task.status === 'overdue' ? 'Atrasada' : 'Concluída'}</span>
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progresso</span>
+                            <span style="color: #ffa502;">${progress.percentage}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress.percentage}%"></div>
+                        </div>
+                    </div>
+                    ${alertHtml}
+                    <div class="dates-grid">
+                        <div class="date-item">
+                            <span>Lançada</span>
+                            <span>${task.startDate.toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <div class="date-item">
+                            <span>Vencimento</span>
+                            <span>${task.dueDate.toLocaleDateString('pt-BR')}</span>
+                        </div>
+                    </div>
+                    <div class="notes-section ${task.notes ? 'has-notes' : ''}" onclick="editNotes('${task.id}')">
+                        ${task.notes || 'Clique para adicionar observações...'}
+                    </div>
+                    <div class="task-actions">
+                        ${task.status === 'launched' ? `<button class="glass-button accent" onclick="startTask('${task.id}')">▶️ Iniciar</button>` : ''}
+                        ${task.status !== 'completed' ? `<button class="glass-button accent" onclick="completeTask('${task.id}')">✓ Concluir</button>` : ''}
+                        <button class="glass-button" onclick="deleteTask('${task.id}')" style="color: #ef4444;">🗑️ Excluir</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTaskProgress(task) {
+            const now = new Date();
+            const startDate = new Date(task.startDate);
+            const dueDate = new Date(task.dueDate);
+            const daysElapsed = Math.max(0, Math.floor((now - startDate) / (1000 * 60 * 60 * 24)));
+            const totalDays = Math.max(1, Math.floor((dueDate - startDate) / (1000 * 60 * 60 * 24)));
+            const daysRemaining = Math.floor((dueDate - now) / (1000 * 60 * 60 * 24));
+            const percentage = Math.min(100, Math.max(0, Math.round((daysElapsed / totalDays) * 100)));
+            const isOverdue = now > dueDate && task.status !== 'completed';
+            const isNearDeadline = daysRemaining <= 3 && daysRemaining > 0 && task.status !== 'completed';
+            return { percentage, isOverdue, isNearDeadline, daysRemaining };
+        }
+
+        function getColumnMetrics(status, columnTasks) {
+            const totalTasks = columnTasks.length;
+            const completedTasks = columnTasks.filter(t => t.status === 'completed').length;
+            const overdueTasks = columnTasks.filter(t => getTaskProgress(t).isOverdue).length;
+            const nearDeadlineTasks = columnTasks.filter(t => getTaskProgress(t).isNearDeadline).length;
+            const avgProgress = columnTasks.length > 0
+                ? Math.round(columnTasks.reduce((sum, t) => sum + getTaskProgress(t).percentage, 0) / columnTasks.length)
+                : 0;
+            return { totalTasks, completedTasks, overdueTasks, nearDeadlineTasks, avgProgress };
+        }
+
+        function selectCompany(id) {
+            selectedCompanyId = id;
+            renderCompanies();
+            renderKanban();
+            loadCompanyInfo();
+        }
+
+        function deleteCompany(id) {
+            companies = companies.filter(c => c.id !== id);
+            tasks = tasks.filter(t => t.companyId !== id);
+            if (selectedCompanyId === id) {
+                selectedCompanyId = companies.length > 0 ? companies[0].id : '';
+            }
+            renderCompanies();
+            renderKanban();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderKanban();
+        }
+
+        function startTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) task.status = 'started';
+            renderKanban();
+        }
+
+        function completeTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) task.status = 'completed';
+            renderKanban();
+        }
+
+        function editNotes(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                const newNotes = prompt('Observações:', task.notes);
+                if (newNotes !== null) {
+                    task.notes = newNotes;
+                    renderKanban();
+                }
+            }
+        }
+
+        function showAddCompanyModal() {
+            document.getElementById('addCompanyModal').classList.add('active');
+            document.getElementById('companyNameInput').focus();
+        }
+
+        function showAddTaskModal() {
+            document.getElementById('addTaskModal').classList.add('active');
+            document.getElementById('taskTitleInput').focus();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function addCompany() {
+            const name = document.getElementById('companyNameInput').value.trim();
+            if (name) {
+                companies.push({ id: Date.now().toString(), name, notes: '', riskLevel: '', clientLevel: '' });
+                document.getElementById('companyNameInput').value = '';
+                closeModal('addCompanyModal');
+                renderCompanies();
+            }
+        }
+
+        function addTask() {
+            const title = document.getElementById('taskTitleInput').value.trim();
+            const description = document.getElementById('taskDescInput').value.trim();
+            const startDate = document.getElementById('taskStartDate').value;
+            const dueDate = document.getElementById('taskDueDate').value;
+
+            if (title && selectedCompanyId) {
+                tasks.push({
+                    id: Date.now().toString(),
+                    title,
+                    description,
+                    status: 'launched',
+                    startDate: new Date(startDate + 'T00:00:00'),
+                    dueDate: new Date(dueDate + 'T00:00:00'),
+                    notes: '',
+                    companyId: selectedCompanyId,
+                });
+                document.getElementById('taskTitleInput').value = '';
+                document.getElementById('taskDescInput').value = '';
+                closeModal('addTaskModal');
+                renderKanban();
+            }
+        }
+
+        // Drag and Drop
+        function dragStart(e) {
+            draggedTaskId = e.target.closest('.task-card').dataset.taskId;
+            e.target.closest('.task-card').classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.innerHTML);
+        }
+
+        function dragEnd(e) {
+            e.target.closest('.task-card').classList.remove('dragging');
+            document.querySelectorAll('.tasks-container').forEach(container => {
+                container.classList.remove('drag-over');
+            });
+            draggedTaskId = null;
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const container = e.target.closest('.tasks-container');
+            if (container) {
+                container.classList.add('drag-over');
+            }
+        }
+
+        function dragLeave(e) {
+            const container = e.target.closest('.tasks-container');
+            if (container && !container.contains(e.relatedTarget)) {
+                container.classList.remove('drag-over');
+            }
+        }
+
+        function taskDragOver(e) {
+            e.preventDefault();
+            const taskCard = e.target.closest('.task-card');
+            if (taskCard && draggedTaskId !== taskCard.dataset.taskId) {
+                taskCard.classList.add('drag-over');
+            }
+        }
+
+        function taskDragLeave(e) {
+            const taskCard = e.target.closest('.task-card');
+            if (taskCard) {
+                taskCard.classList.remove('drag-over');
+            }
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const container = e.target.closest('.tasks-container');
+            if (container && draggedTaskId) {
+                const status = container.dataset.status;
+                const task = tasks.find(t => t.id === draggedTaskId);
+                if (task && task.companyId === selectedCompanyId) {
+                    task.status = status;
+                    renderKanban();
+                }
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (document.getElementById('addCompanyModal').classList.contains('active')) {
+                    addCompany();
+                } else if (document.getElementById('addTaskModal').classList.contains('active')) {
+                    addTask();
+                }
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+            // Close skin menu if clicked outside
+            if (!e.target.closest('.skin-toggle')) {
+                document.getElementById('skinMenu').classList.remove('active');
+            }
+        });
+
+        // Funções para os novos campos de empresa
+        function toggleInfoBox(boxId) {
+            const content = document.getElementById(boxId + 'Content');
+            const icon = document.getElementById(boxId + 'Icon');
+            content.classList.toggle('expanded');
+            icon.classList.toggle('expanded');
+        }
+
+        function loadCompanyInfo() {
+            const company = companies.find(c => c.id === selectedCompanyId);
+            const infoSection = document.getElementById('companyInfoSection');
+            
+            if (company && selectedCompanyId) {
+                infoSection.style.display = 'grid';
+                document.getElementById('companyNotesTextarea').value = company.notes || '';
+                document.getElementById('companyRiskLevel').value = company.riskLevel || '';
+                document.getElementById('companyClientLevel').value = company.clientLevel || '';
+                
+                // Garantir que os quadros comecem recolhidos
+                document.getElementById('companyNotesContent').classList.remove('expanded');
+                document.getElementById('companyNotesIcon').classList.remove('expanded');
+                document.getElementById('companyRiskContent').classList.remove('expanded');
+                document.getElementById('companyRiskIcon').classList.remove('expanded');
+            } else {
+                infoSection.style.display = 'none';
+            }
+        }
+
+        function saveCompanyNotes() {
+            const company = companies.find(c => c.id === selectedCompanyId);
+            if (company) {
+                company.notes = document.getElementById('companyNotesTextarea').value;
+            }
+        }
+
+        function saveCompanyRisk() {
+            const company = companies.find(c => c.id === selectedCompanyId);
+            if (company) {
+                company.riskLevel = document.getElementById('companyRiskLevel').value;
+                company.clientLevel = document.getElementById('companyClientLevel').value;
+            }
+        }
+
+        // Funções de exportar/importar
+        function exportData() {
+            const data = {
+                companies: companies,
+                tasks: tasks.map(task => ({
+                    ...task,
+                    startDate: task.startDate.toISOString(),
+                    dueDate: task.dueDate.toISOString()
+                }))
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'gerenciador_clientes_backup_' + new Date().toISOString().split('T')[0] + '.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            alert('Dados exportados com sucesso!');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.companies && data.tasks) {
+                        companies = data.companies;
+                        tasks = data.tasks.map(task => ({
+                            ...task,
+                            startDate: new Date(task.startDate),
+                            dueDate: new Date(task.dueDate)
+                        }));
+                        
+                        selectedCompanyId = companies.length > 0 ? companies[0].id : '';
+                        renderCompanies();
+                        renderKanban();
+                        loadCompanyInfo();
+                        alert('Dados importados com sucesso!');
+                    } else {
+                        alert('Formato de arquivo inv\u00e1lido!');
+                    }
+                } catch (error) {
+                    alert('Erro ao importar arquivo: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function toggleTaskCollapse(event) {
+            const card = event.target.closest('.task-card');
+            // Evita que o clique nos botões de ação ou no campo de notas colapse o card
+            if (event.target.closest('.task-actions') || event.target.closest('.notes-section')) {
+                return;
+            }
+            
+            // Permite arrastar mesmo quando colapsado
+            if (card.classList.contains('dragging')) {
+                return;
+            }
+
+            card.classList.toggle('collapsed');
+        }
+
+        function resetData() {
+            if (confirm('Tem certeza que deseja resetar? Todos os dados (empresas e tarefas) serão perdidos.')) {
+                companies = [];
+                tasks = [];
+                selectedCompanyId = '';
+                
+                // Limpar dados salvos no localStorage
+                localStorage.removeItem('kanbanSkin');
+                
+                renderCompanies();
+                renderKanban();
+                loadCompanyInfo();
+                alert('Sistema resetado com sucesso!');
+            }
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
