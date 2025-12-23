@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador | Tarefas One</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #ffd89b;
+            background: -webkit-linear-gradient(to right, #19547b, #ffd89b);
+            background: linear-gradient(to right, #19547b, #ffd89b);
+            padding: 20px;
+            padding-left: 20px;
+            overflow-x: hidden;
+            transition: padding-left 0.3s ease;
+        }
+
+        body.sidebar-open {
+            padding-left: 320px;
+        }
+
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+            transform: translateX(-300px);
+            transition: transform 0.3s ease;
+            z-index: 1500;
+            padding: 20px;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -70px;
+            top: 120px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .sidebar-header {
+            color: white;
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-search {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-search::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .sidebar-search:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar-list {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .sidebar-item {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .sidebar-item-name {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-item-stats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sidebar-stat {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            color: white;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        .btn:hover {
+            background: rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(31, 38, 135, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(255, 99, 132, 0.1);
+            border-color: rgba(255, 99, 132, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 99, 132, 0.3);
+            box-shadow: 0 6px 20px 0 rgba(255, 99, 132, 0.3);
+        }
+
+        .action-menu {
+            position: relative;
+            z-index: 29999; /* Um pouco abaixo do skin-selector */
+        }
+
+        .action-menu-toggle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .action-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .action-menu-dropdown {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7); /* Vidro Fumê Transparente Preto */
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1); /* Borda mais discreta */
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5); /* Sombra mais escura */
+            display: none;
+            min-width: 220px;
+            z-index: 30000;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-menu-dropdown.active {
+            display: flex;
+        }
+
+        .action-menu-dropdown .btn {
+            width: 100%;
+            text-align: left;
+            justify-content: flex-start;
+            padding: 10px 15px;
+        }
+
+        .skin-selector {
+            position: relative;
+            z-index: 29999;
+        }
+
+        .skin-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .skin-btn:hover {
+            transform: rotate(90deg);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .skin-menu {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+            display: none;
+            min-width: 200px;
+            z-index: 30000;
+        }
+
+        .skin-menu.active {
+            display: block;
+        }
+
+        .skin-option {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .skin-option:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .add-company-section {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .add-company-section h2 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            font-weight: 500;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .glass-input { width: 100%;
+            flex: 1;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .companies-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .company-card {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .company-header {
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .company-header:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .company-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .company-name {
+            color: white;
+            font-size: 1.5em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .company-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        .toggle-icon {
+            color: white;
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .company-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .company-content.expanded {
+            max-height: 5000px;
+        }
+
+        .progress-section {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .spinner-container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .spinner-item {
+            text-align: center;
+            position: relative;
+        }
+
+        .modern-spinner {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: conic-gradient(var(--spinner-color) var(--percent), rgba(255, 255, 255, 0.1) 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .modern-spinner::before {
+            content: "";
+            position: absolute;
+            width: 85px;
+            height: 85px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+        }
+
+        .spinner-percent {
+            position: relative;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            z-index: 1;
+        }
+
+        .spinner-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 25px;
+        }
+
+        .kanban-column {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .column-header {
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 0;
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .column-header:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .column-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .column-header-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .stat-box-label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-box-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .mini-spinner {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: conic-gradient(var(--spinner-color) var(--percent), rgba(255, 255, 255, 0.1) 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .mini-spinner::before {
+            content: "";
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: rgba(40, 44, 52, 0.8);
+            border-radius: 50%;
+        }
+
+        .mini-spinner-percent {
+            position: relative;
+            font-size: 10px;
+            font-weight: 700;
+            z-index: 1;
+        }
+
+        .column-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .column-content.expanded {
+            max-height: 2000px;
+            margin-top: 15px;
+        }
+
+        .task-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .tasks-list {
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .task-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card.late {
+            border-left: 5px solid #ff6384;
+        }
+
+        .task-card.due-soon {
+            border-left: 5px solid #ffce56;
+        }
+
+        .task-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .task-module {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: white;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+
+        .task-date {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-indicator {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-left: auto;
+        }
+
+        .status-vencida { background: #ff6384; color: white; }
+        .status-proxima { background: #ffce56; color: #333; }
+
+        .task-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            position: relative;
+        }
+
+        .time-progress-container {
+            grid-column: span 2;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-progress-bar {
+            height: 6px;
+            background: #ccff00;
+            border-radius: 20px;
+            box-shadow: 0 0 10px #ccff00, 0 0 20px #ccff00;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .time-progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .task-btn {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 6px;
+            color: white;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .task-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .task-btn.start { background: rgba(54, 162, 235, 0.3); border-color: rgba(54, 162, 235, 0.5); }
+        .task-btn.complete { background: rgba(75, 192, 192, 0.3); border-color: rgba(75, 192, 192, 0.5); }
+
+        .add-task-btn {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .add-task-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+        }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 35px;
+            width: 95%;
+            max-width: 800px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            color: white;
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .form-group { width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: white;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            color: white;
+            outline: none;
+        }
+
+        .form-select option {
+            background: #333;
+            color: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary { background: #4facfe; color: white; }
+        .btn-secondary { background: rgba(255, 255, 255, 0.2); color: white; }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 1200px) {
+            .kanban-board { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .kanban-board { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 20px; text-align: center; }
+            .controls { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()">🏢</div>
+        <div class="sidebar-header">🏢 Empresas</div>
+        <input type="text" class="sidebar-search" id="sidebarSearch" placeholder="🔍 Pesquisar empresas..." oninput="filterSidebarCompanies()">
+        <div class="sidebar-list" id="sidebarList"></div>
+    </div>
+
+    <div class="header">
+        <h1>📊 Gerenciador | Tarefas One</h1>
+        <div class="controls">
+            <div class="action-menu">
+                <button class="action-menu-toggle" onclick="toggleActionMenu()">⋮</button>
+                <div class="action-menu-dropdown" id="actionMenu">
+                    <button class="btn" onclick="openCompanyModal()">✨ Nova Empresa</button>
+                    <button class="btn" onclick="exportJSON()">📤 Exportar JSON</button>
+                    <button class="btn" onclick="importJSON()">📥 Importar JSON</button>
+                    <button class="btn btn-danger" onclick="resetSystem()">🗑️ Resetar Tudo</button>
+                </div>
+            </div>
+            <div class="skin-selector">
+                <button class="skin-btn" onclick="toggleSkinMenu()">⚙️</button>
+                <div class="skin-menu" id="skinMenu">
+                    <div class="skin-option" style="background: linear-gradient(to right, #19547b, #ffd89b)" onclick="changeSkin(1)">Pôr do Sol</div>
+                    <div class="skin-option" style="background: linear-gradient(to right, #F29492, #114357)" onclick="changeSkin(2)">Rosa Noturno</div>
+                    <div class="skin-option" style="background: linear-gradient(to right, #d7d2cc, #304352)" onclick="changeSkin(3)">Cinza Elegante</div>
+                    <div class="skin-option" style="background: linear-gradient(to right, #667eea, #764ba2)" onclick="changeSkin(4)">Roxo Vibrante</div>
+                    <div class="skin-option" style="background: linear-gradient(to right, #f093fb, #f5576c)" onclick="changeSkin(5)">Rosa Intenso</div>
+                    <div class="skin-option" style="background: linear-gradient(to right, #4facfe, #00f2fe)" onclick="changeSkin(6)">Azul Oceano</div>
+                    <div class="skin-option" style="background: linear-gradient(to right, #43e97b, #38f9d7)" onclick="changeSkin(7)">Verde Menta</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="companies-container" id="companiesContainer"></div>
+
+    <div class="footer">
+        Copyright | Ivan Alves Ramalho
+    </div>
+
+    <input type="file" id="fileInput" style="display: none;" accept=".json" onchange="handleFileImport(event)">
+
+    <!-- Modal para Adicionar Empresa -->
+    <div class="modal-overlay" id="companyModalOverlay">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">➕ Adicionar Nova Empresa</div>
+            <div class="form-group">
+                <label class="form-label">Nome da Empresa</label>
+                <input type="text" class="glass-input" id="companyNameInput" placeholder="Digite o nome da empresa...">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-secondary" onclick="closeCompanyModal()">Cancelar</button>
+                <button class="modal-btn btn-primary" onclick="addCompany()">Adicionar Empresa</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header" id="modalTitle">Nova Tarefa</div>
+            <div class="form-group">
+                <label class="form-label">Título da Tarefa</label>
+                <input type="text" class="glass-input" id="taskTitle" placeholder="Digite o título...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Descrição Detalhada</label>
+                <textarea class="glass-input" id="taskDescription" placeholder="Digite os detalhes da tarefa..." style="min-height: 100px; resize: vertical;"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Observações</label>
+                <textarea class="glass-input" id="taskNotes" placeholder="Adicione observações importantes..." style="min-height: 80px; resize: vertical;"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Módulo</label>
+                <select class="form-select" id="taskModule">
+                    <option value="Escrita">Escrita</option>
+                    <option value="Folha">Folha</option>
+                    <option value="Contabilidade">Contabilidade</option>
+                    <option value="Patrimônio">Patrimônio</option>
+                    <option value="Lalur">Lalur</option>
+                    <option value="Custos">Custos</option>
+                    <option value="Portal do cliente">Portal do cliente</option>
+                    <option value="Portal do empregado">Portal do empregado</option>
+                    <option value="CCT">CCT</option>
+                    <option value="Honorários">Honorários</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Data de Vencimento</label>
+                <input type="date" class="glass-input" id="taskDate">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-primary" onclick="saveTask()">Salvar</button>
+                <button class="modal-btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let companies = [];
+        let activeCompanyId = null;
+        let currentCompanyId = null;
+        let currentTaskId = null;
+        let currentStatus = null;
+
+        const skins = [
+            { name: 'Pôr do Sol', gradient: 'linear-gradient(to right, #19547b, #ffd89b)' },
+            { name: 'Rosa Noturno', gradient: 'linear-gradient(to right, #F29492, #114357)' },
+            { name: 'Cinza Elegante', gradient: 'linear-gradient(to right, #d7d2cc, #304352)' },
+            { name: 'Roxo Vibrante', gradient: 'linear-gradient(to right, #667eea, #764ba2)' },
+            { name: 'Rosa Intenso', gradient: 'linear-gradient(to right, #f093fb, #f5576c)' },
+            { name: 'Azul Oceano', gradient: 'linear-gradient(to right, #4facfe, #00f2fe)' },
+            { name: 'Verde Menta', gradient: 'linear-gradient(to right, #43e97b, #38f9d7)' }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromCache();
+            renderCompanies();
+            renderSidebar();
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            document.body.classList.toggle('sidebar-open');
+        }
+
+        function renderSidebar() {
+            const sidebarList = document.getElementById('sidebarList');
+            sidebarList.innerHTML = '';
+            companies.forEach(company => {
+                const stats = getCompanyStats(company);
+                const item = document.createElement('div');
+                item.className = 'sidebar-item';
+                item.onclick = () => toggleCompany(company.id);
+                item.innerHTML = `
+                    <div class="sidebar-item-name">${company.name}</div>
+                    <div class="sidebar-item-stats">
+                        <span class="sidebar-stat">📝 ${stats.pending}</span>
+                        <span class="sidebar-stat">⏳ ${stats.inProgress}</span>
+                        <span class="sidebar-stat">✅ ${stats.completed}</span>
+                        <span class="sidebar-stat">⚠️ ${stats.late}</span>
+                    </div>
+                `;
+                sidebarList.appendChild(item);
+            });
+        }
+
+        function filterSidebarCompanies() {
+            const searchTerm = document.getElementById('sidebarSearch').value.toLowerCase();
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                const name = item.querySelector('.sidebar-item-name').textContent.toLowerCase();
+                item.style.display = name.includes(searchTerm) ? 'block' : 'none';
+            });
+        }
+
+        function scrollToCompany(companyId) {
+            const card = document.querySelector(`[data-company-id="${companyId}"]`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const company = companies.find(c => c.id === companyId);
+                if (company && company.collapsed) toggleCompany(companyId);
+            }
+        }
+
+        function toggleActionMenu() {
+            document.getElementById('actionMenu').classList.toggle('active');
+            document.getElementById('skinMenu').classList.remove('active'); // Fechar o menu de skin se estiver aberto
+        }
+
+        function toggleSkinMenu() {
+            document.getElementById('skinMenu').classList.toggle('active');
+        }
+
+        function changeSkin(index) {
+            document.body.style.background = skins[index-1].gradient;
+            toggleSkinMenu();
+            saveToCache();
+        }
+
+        function openCompanyModal() {
+            document.getElementById('companyModalOverlay').style.display = 'flex';
+            document.getElementById('companyNameInput').focus();
+        }
+
+        function closeCompanyModal() {
+            document.getElementById('companyModalOverlay').style.display = 'none';
+            document.getElementById('companyNameInput').value = '';
+        }
+
+        function addCompany() {
+            const input = document.getElementById('companyNameInput');
+            const name = input.value.trim();
+            if (!name) return alert('Digite o nome da empresa');
+            const newCompany = {
+                id: Date.now(),
+                name: name,
+                tasks: { pending: [], inProgress: [], completed: [], late: [] },
+                collapsed: true,
+                columnsCollapsed: { pending: true, inProgress: true, completed: true, late: true }
+            };
+            companies.push(newCompany);
+            activeCompanyId = newCompany.id;
+            closeCompanyModal();
+            renderCompanies();
+            renderSidebar();
+            saveToCache();
+        }
+
+        function deleteCompany(id) {
+            if (confirm('Excluir esta empresa?')) {
+                companies = companies.filter(c => c.id !== id);
+                renderCompanies();
+                renderSidebar();
+                saveToCache();
+            }
+        }
+
+        function toggleCompany(id) {
+            activeCompanyId = id;
+            renderCompanies();
+            saveToCache();
+        }
+
+        function toggleColumn(companyId, status) {
+            const company = companies.find(c => c.id === companyId);
+            if (company) {
+                if (!company.columnsCollapsed) company.columnsCollapsed = { pending: true, inProgress: true, completed: true, late: true };
+                company.columnsCollapsed[status] = !company.columnsCollapsed[status];
+                renderCompanies();
+                saveToCache();
+            }
+        }
+
+        function getCompanyStats(company) {
+            const p = company.tasks.pending.length;
+            const i = company.tasks.inProgress.length;
+            const c = company.tasks.completed.length;
+            const l = company.tasks.late.length;
+            const total = p + i + c + l || 1;
+            return {
+                pending: p, inProgress: i, completed: c, late: l,
+                pPerc: Math.round((p/total)*100), iPerc: Math.round((i/total)*100),
+                cPerc: Math.round((c/total)*100), lPerc: Math.round((l/total)*100)
+            };
+        }
+
+        function renderCompanies() {
+            const container = document.getElementById('companiesContainer');
+            container.innerHTML = '';
+            
+            // Se não houver empresa ativa, não renderiza nada no centro
+            if (activeCompanyId === null) {
+                container.innerHTML = '<div style="text-align: center; color: white; margin-top: 50px; font-size: 1.2em;">Selecione uma empresa na lista lateral para visualizar as tarefas.</div>';
+                return;
+            }
+
+            const company = companies.find(c => c.id === activeCompanyId);
+            if (!company) return;
+
+            const stats = getCompanyStats(company);
+            const card = document.createElement('div');
+            card.className = 'company-card';
+            // Forçar reinício da animação removendo e adicionando o elemento
+            card.style.animation = 'none';
+            card.offsetHeight; // trigger reflow
+            card.style.animation = null;
+            card.setAttribute('data-company-id', company.id);
+            
+            const colState = company.columnsCollapsed || { pending: true, inProgress: true, completed: true, late: true };
+
+            card.innerHTML = `
+                <div class="company-header">
+                    <div class="company-info">
+                        <div class="company-name">${company.name}</div>
+                    </div>
+                    <div class="company-actions">
+                        <button class="icon-btn" onclick="deleteCompany(${company.id})">🗑️</button>
+                    </div>
+                </div>
+                <div class="company-content expanded">
+                    <div class="progress-section">
+                        <div class="spinner-container">
+                            ${renderSpinner('Pendentes', stats.pPerc, '#ffce56')}
+                            ${renderSpinner('Em Andamento', stats.iPerc, '#36a2eb')}
+                            ${renderSpinner('Concluídas', stats.cPerc, '#4bc0c0')}
+                            ${renderSpinner('Atrasadas', stats.lPerc, '#ff6384')}
+                        </div>
+                    </div>
+                    <div class="kanban-board">
+                        ${renderColumn(company, 'pending', '📝 Inseridas', stats.pending, colState.pending, '#ffce56')}
+                        ${renderColumn(company, 'inProgress', '⏳ Iniciadas', stats.inProgress, colState.inProgress, '#36a2eb')}
+                        ${renderColumn(company, 'completed', '✅ Concluídas', stats.completed, colState.completed, '#4bc0c0')}
+                        ${renderColumn(company, 'late', '⚠️ Atrasadas', stats.late, colState.late, '#ff6384')}
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        function renderSpinner(label, percent, color) {
+            return `
+                <div class="spinner-item">
+                    <div class="modern-spinner" style="--spinner-color: ${color}; --percent: ${percent}%">
+                        <span class="spinner-percent">${percent}%</span>
+                    </div>
+                    <div class="spinner-label">${label}</div>
+                </div>
+            `;
+        }
+
+        function renderColumn(company, status, title, count, isCollapsed, color) {
+            const stats = getCompanyStats(company);
+            const totalTasks = stats.pending + stats.inProgress + stats.completed + stats.late;
+            let percent = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0;
+
+            return `
+                <div class="kanban-column" style="border-top: 3px solid ${color}">
+                    <div class="column-header" onclick="toggleColumn(${company.id}, '${status}')">
+                        <div class="column-header-top">
+                            <span>${title}</span>
+                            <span class="task-count" style="background: ${color}; color: ${status === 'pending' ? '#333' : 'white'}">${count}</span>
+                        </div>
+                        <div class="column-header-stats">
+                            <div class="stat-box">
+                                <div class="stat-box-label">Progresso</div>
+                                <div class="mini-spinner" style="--spinner-color: ${color}; --percent: ${percent}%">
+                                    <span class="mini-spinner-percent">${percent}%</span>
+                                </div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-box-label">Total Quadro</div>
+                                <div class="stat-box-value" style="color: ${color}">${count}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column-content ${isCollapsed ? '' : 'expanded'}">
+                        <div class="tasks-list" id="${status}-${company.id}" ondragover="allowDrop(event)" ondrop="drop(event, ${company.id}, '${status}')">
+                            ${renderTasks(company.tasks[status], company.id, status)}
+                        </div>
+                        <button class="add-task-btn" onclick="openTaskModal(${company.id}, '${status}')">+ Adicionar Tarefa</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTasks(tasks, companyId, status) {
+            if (!tasks || tasks.length === 0) return '';
+            const now = new Date();
+            return tasks.map(task => {
+                const dueDate = task.date ? new Date(task.date) : null;
+                let statusClass = '';
+                let statusLabel = '';
+                
+                if (dueDate && status !== 'completed') {
+                    const diff = (dueDate - now) / (1000 * 60 * 60 * 24);
+                    if (diff < 0) { statusClass = 'status-vencida'; statusLabel = 'VENCIDA'; }
+                    else if (diff <= 3) { statusClass = 'status-proxima'; statusLabel = 'DUE SOON'; }
+                }
+
+                let btns = '';
+                let timeSpinner = '';
+                if (status === 'pending' || status === 'late') {
+                    btns = `<button class="task-btn start" onclick="event.stopPropagation(); moveTask(${companyId}, ${task.id}, '${status}', 'inProgress')">▶️ Iniciar</button>
+                            <button class="task-btn complete" onclick="event.stopPropagation(); moveTask(${companyId}, ${task.id}, '${status}', 'completed')">✅ Concluir</button>`;
+                } else if (status === 'inProgress') {
+                    btns = `<button class="task-btn complete" onclick="event.stopPropagation(); moveTask(${companyId}, ${task.id}, 'inProgress', 'completed')">✅ Concluir</button>`;
+                    
+                    if (dueDate) {
+                        const start = task.createdAt ? new Date(task.createdAt) : new Date(task.id);
+                        const total = dueDate - start;
+                        const elapsed = now - start;
+                        let timePerc = total > 0 ? Math.min(100, Math.max(0, Math.round((elapsed / total) * 100))) : 0;
+                        
+                        timeSpinner = `
+                            <div class="time-progress-container">
+                                <div class="time-progress-label">
+                                    <span>Tempo Decorrido</span>
+                                    <span>${timePerc}%</span>
+                                </div>
+                                <div class="time-progress-bar" style="width: ${timePerc}%"></div>
+                            </div>
+                        `;
+                    }
+                }
+
+                return `
+                    <div class="task-card ${statusLabel === 'VENCIDA' ? 'late' : (statusLabel === 'DUE SOON' ? 'due-soon' : '')}" draggable="true" ondragstart="drag(event, ${task.id}, ${companyId}, '${status}')">
+                        <div style="display:flex; align-items: center; justify-content: space-between;">
+                            <div class="task-title">${task.title}</div>
+                        
+                            ${statusLabel ? `<span class="status-indicator ${statusClass}">${statusLabel}</span>` : ''}
+                        </div>
+                        ${task.description ? `<div class="task-desc" style="color: rgba(255,255,255,0.7); font-size: 12px; margin-bottom: 10px; white-space: pre-wrap;">${task.description}</div>` : ''}
+                        ${task.notes ? `<div class="task-notes" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);"><div style="font-weight: 500; color: white; font-size: 12px; margin-bottom: 5px;">Observações:</div><div style="color: rgba(255,255,255,0.8); font-size: 11px; white-space: pre-wrap;">${task.notes}</div></div>` : ''}
+                        <div class="task-module">${task.module}</div>
+                        <div class="task-date">📅 ${task.date || 'Sem data'}</div>
+                        <div class="task-actions">
+                            ${btns}
+                            <button class="task-btn" onclick="event.stopPropagation(); editTask(${companyId}, '${status}', ${task.id})">✏️ Editar</button>
+                            <button class="task-btn" onclick="event.stopPropagation(); deleteTask(${companyId}, '${status}', ${task.id})">🗑️ Excluir</button>
+                            ${timeSpinner}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function moveTask(companyId, taskId, from, to) {
+            const company = companies.find(c => c.id === companyId);
+            const task = company.tasks[from].find(t => t.id === taskId);
+            if (task) {
+                company.tasks[from] = company.tasks[from].filter(t => t.id !== taskId);
+                company.tasks[to].push(task);
+                renderCompanies();
+                renderSidebar();
+                saveToCache();
+            }
+        }
+
+        function openTaskModal(companyId, status, taskId = null) {
+            currentCompanyId = companyId;
+            currentStatus = status;
+            currentTaskId = taskId;
+            const modalTitle = document.getElementById('modalTitle');
+            const taskTitle = document.getElementById('taskTitle');
+            const taskDescription = document.getElementById('taskDescription');
+            const taskModule = document.getElementById('taskModule');
+            const taskDate = document.getElementById('taskDate');
+
+            if (taskId) {
+                modalTitle.innerText = 'Editar Tarefa';
+                const company = companies.find(c => c.id === companyId);
+                const task = company.tasks[status].find(t => t.id === taskId);
+                taskTitle.value = task.title;
+                taskDescription.value = task.description || '';
+                const taskNotes = document.getElementById('taskNotes');
+                if (taskNotes) taskNotes.value = task.notes || '';
+                taskModule.value = task.module;
+                taskDate.value = task.date;
+            } else {
+                modalTitle.innerText = 'Nova Tarefa';
+                taskTitle.value = '';
+                taskDescription.value = '';
+                taskModule.value = 'Escrita';
+                taskDate.value = '';
+            }
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function saveTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const notes = document.getElementById('taskNotes').value.trim();
+            const module = document.getElementById('taskModule').value;
+            const date = document.getElementById('taskDate').value;
+            if (!title) return alert('Digite o título');
+
+            const company = companies.find(c => c.id === currentCompanyId);
+            if (currentTaskId) {
+                const task = company.tasks[currentStatus].find(t => t.id === currentTaskId);
+                task.title = title;
+                task.description = description;
+                task.module = module;
+                task.date = date;
+                task.notes = notes;
+            } else {
+                company.tasks[currentStatus].push({ id: Date.now(), title, description, module, date, notes, createdAt: new Date().toISOString() });
+            }
+            closeModal();
+            renderCompanies();
+            renderSidebar();
+            saveToCache();
+        }
+
+        function deleteTask(companyId, status, taskId) {
+            if (confirm('Excluir tarefa?')) {
+                const company = companies.find(c => c.id === companyId);
+                company.tasks[status] = company.tasks[status].filter(t => t.id !== taskId);
+                renderCompanies();
+                renderSidebar();
+                saveToCache();
+            }
+        }
+
+        function editTask(companyId, status, taskId) {
+            openTaskModal(companyId, status, taskId);
+        }
+
+        function drag(e, taskId, companyId, status) {
+            e.dataTransfer.setData('taskId', taskId);
+            e.dataTransfer.setData('companyId', companyId);
+            e.dataTransfer.setData('status', status);
+        }
+
+        function allowDrop(e) { e.preventDefault(); }
+
+        function drop(e, targetCompanyId, targetStatus) {
+            e.preventDefault();
+            const taskId = parseInt(e.dataTransfer.getData('taskId'));
+            const sourceCompanyId = parseInt(e.dataTransfer.getData('companyId'));
+            const sourceStatus = e.dataTransfer.getData('status');
+            if (sourceCompanyId === targetCompanyId && sourceStatus === targetStatus) return;
+            const sourceCompany = companies.find(c => c.id === sourceCompanyId);
+            const taskIndex = sourceCompany.tasks[sourceStatus].findIndex(t => t.id === taskId);
+            const task = sourceCompany.tasks[sourceStatus].splice(taskIndex, 1)[0];
+            companies.find(c => c.id === targetCompanyId).tasks[targetStatus].push(task);
+            renderCompanies();
+            renderSidebar();
+            saveToCache();
+        }
+
+        function saveToCache() {
+            localStorage.setItem('kanbanData', JSON.stringify({ companies, skin: document.body.style.background }));
+        }
+
+        function loadFromCache() {
+            const cached = localStorage.getItem('kanbanData');
+            if (cached) {
+                const data = JSON.parse(cached);
+                companies = data.companies || [];
+                if (data.skin) document.body.style.background = data.skin;
+            }
+        }
+
+        function exportJSON() {
+            const blob = new Blob([JSON.stringify({ companies, skin: document.body.style.background }, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kanban-backup-${Date.now()}.json`;
+            a.click();
+        }
+
+        function importJSON() { document.getElementById('fileInput').click(); }
+
+        function handleFileImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    companies = data.companies || [];
+                    if (data.skin) document.body.style.background = data.skin;
+                    renderCompanies();
+                    renderSidebar();
+                    saveToCache();
+                } catch (err) { alert('Erro ao importar'); }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetSystem() {
+            if (confirm('Resetar tudo?')) {
+                companies = [];
+                renderCompanies();
+                renderSidebar();
+                saveToCache();
+            }
+        }
+
+    document.addEventListener('click', (e) => {
+        if (!document.querySelector('.skin-selector').contains(e.target)) {
+            document.getElementById('skinMenu').classList.remove('active');
+        }
+        if (!document.querySelector('.action-menu').contains(e.target)) {
+            document.getElementById('actionMenu').classList.remove('active');
+        }
+    });
+    </script>
+</body>
+</html>
